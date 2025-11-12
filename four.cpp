@@ -90,9 +90,10 @@ Four::~Four() noexcept {
 
 Four Four::add(const Four& other) const {
     size_t maxSize = std::max(_size, other._size);
-    Four result(maxSize + 1, 0);
+    unsigned char* results = new unsigned char[maxSize + 1];
     unsigned char carry = 0;
-    for (size_t i = 0; i < maxSize || carry; ++i) {
+    size_t i = 0;
+    for (; i < maxSize || carry; ++i) {
         unsigned char sum = carry;
         if (i < _size) {
             sum += _data[i];
@@ -103,10 +104,18 @@ Four Four::add(const Four& other) const {
         }
         
         carry = sum / 4;
-        result._data[i] = sum % 4;
+        results[i] = sum % 4;
     }
-    
-    result.removeLeadingZeros();
+
+    if (carry) {
+        results[i] = static_cast<unsigned char>(carry);
+        maxSize++;
+    }
+
+    Four result;
+    result._size = maxSize;
+    result._data = results;
+
     result.validateNumber();
     return result;
 }
@@ -117,7 +126,7 @@ Four Four::subtract(const Four& other) const {
     }
     
     size_t maxSize = std::max(_size, other._size);
-    Four result(maxSize, 0);
+    unsigned char* results = new unsigned char[maxSize + 1];
     int borrow = 0;
     for (size_t i = 0; i < maxSize; ++i) {
         int digit = -borrow;
@@ -136,14 +145,22 @@ Four Four::subtract(const Four& other) const {
             borrow = 0;
         }
         
-        result._data[i] = static_cast<unsigned char>(digit);
+        results[i] = static_cast<unsigned char>(digit);
     }
     
     if (borrow != 0) {
         throw std::invalid_argument("Нельзя вычесть из большего числа");
     }
     
-    result.removeLeadingZeros();
+    while (results[maxSize - 1] == '0') {
+        --maxSize;
+    }
+
+    Four result;
+    result._size = maxSize;
+    result._data = results;
+
+
     result.validateNumber();
     return result;
 }
@@ -189,38 +206,6 @@ std::string Four::toString() const {
         result += digitToChar(_data[i - 1]);
     }
     return result;
-}
-
-void Four::resize(size_t newSize) {
-    if (newSize == _size) return;
-    
-    unsigned char* newData = new unsigned char[newSize]();
-    if (_data) {
-        size_t copySize = std::min(_size, newSize);
-        std::copy(_data, _data + copySize, newData);
-        delete[] _data;
-    }
-    _data = newData;
-    _size = newSize;
-}
-
-void Four::removeLeadingZeros() {
-    size_t leadingZeros = 0;
-    while (leadingZeros < _size && _data[_size - 1 - leadingZeros] == 0) {
-        ++leadingZeros;
-    }
-    
-    if (leadingZeros == _size) {
-        resize(1);
-        _data[0] = 0;
-    } else if (leadingZeros > 0) {
-        size_t newSize = _size - leadingZeros;
-        unsigned char* newData = new unsigned char[newSize];
-        std::copy(_data, _data + _size - leadingZeros, newData);
-        delete[] _data;
-        _data = newData;
-        _size = newSize;
-    }
 }
 
 void Four::validateNumber() const {

@@ -54,6 +54,13 @@ TEST(FourTests, Add) {
     EXPECT_EQ(result.toString(), "33");
 }
 
+TEST(FourTests, Add1) {
+    Four num1("33");
+    Four num2("1");
+    Four result = num1.add(num2);
+    EXPECT_EQ(result.toString(), "100");
+}
+
 TEST(FourTests, Subtract) {
     Four num1("32");
     Four num2("21");
