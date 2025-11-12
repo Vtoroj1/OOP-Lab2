@@ -54,7 +54,7 @@ TEST(FourTests, Add) {
     EXPECT_EQ(result.toString(), "33");
 }
 
-TEST(FourTests, Add1) {
+TEST(FourTests, AddWithCarry) {
     Four num1("33");
     Four num2("1");
     Four result = num1.add(num2);
@@ -66,6 +66,20 @@ TEST(FourTests, Subtract) {
     Four num2("21");
     Four result = num1.subtract(num2);
     EXPECT_EQ(result.toString(), "11");
+}
+
+TEST(FourTests, SubtractEqual) {
+    Four num1("32");
+    Four num2("32");
+    Four result = num1.subtract(num2);
+    EXPECT_EQ(result.toString(), "0");
+}
+
+TEST(FourTests, SubtractWithBorrow) {
+    Four num1("32");
+    Four num2("30");
+    Four result = num1.subtract(num2);
+    EXPECT_EQ(result.toString(), "2");
 }
 
 TEST(FourTests, SubtractNegativeResult) {

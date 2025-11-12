@@ -93,7 +93,7 @@ Four Four::add(const Four& other) const {
     unsigned char* results = new unsigned char[maxSize + 1];
     unsigned char carry = 0;
     size_t i = 0;
-    for (; i < maxSize || carry; ++i) {
+    for (; i < maxSize; ++i) {
         unsigned char sum = carry;
         if (i < _size) {
             sum += _data[i];
@@ -152,7 +152,7 @@ Four Four::subtract(const Four& other) const {
         throw std::invalid_argument("Нельзя вычесть из большего числа");
     }
     
-    while (results[maxSize - 1] == '0') {
+    while (maxSize > 1 && results[maxSize - 1] == 0) {
         --maxSize;
     }
 
