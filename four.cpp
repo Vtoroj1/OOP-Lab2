@@ -45,13 +45,15 @@ Four::Four(const std::initializer_list<unsigned char>& t) : _size(t.size()) {
         return;
     }
     _data = new unsigned char[_size];
+    
     size_t i = 0;
-    for (auto it = t.begin(); it != t.end(); ++it, ++i) {
+    for (auto it = t.end(); it != t.begin(); ) {
+        --it;
         if (!isValidDigit(*it)) {
             delete[] _data;
             throw std::invalid_argument("Некорректная цифра для четвертичного числа");
         }
-        _data[i] = *it;
+        _data[i++] = *it;
     }
     validateNumber();
 }
@@ -63,7 +65,7 @@ Four::Four(const std::string& t) : _size(t.length()) {
     }
     _data = new unsigned char[_size];
     for (size_t i = 0; i < _size; ++i) {
-        _data[i] = charToDigit(t[i]);
+        _data[i] = charToDigit(t[_size - 1 - i]);
     }
     validateNumber();
 }
@@ -86,32 +88,22 @@ Four::~Four() noexcept {
     delete[] _data;
 }
 
-size_t Four::size() const {
-    return _size;
-}
-
-const unsigned char* Four::data() const {
-    return _data;
-}
-
-unsigned char Four::get(size_t index) const {
-    if (index >= _size) {
-        throw std::out_of_range("Index out of range");
-    }
-    return _data[index];
-}
-
 Four Four::add(const Four& other) const {
     size_t maxSize = std::max(_size, other._size);
     Four result(maxSize + 1, 0);
     unsigned char carry = 0;
     for (size_t i = 0; i < maxSize || carry; ++i) {
         unsigned char sum = carry;
-        if (i < _size) sum += _data[_size - 1 - i];
-        if (i < other._size) sum += other._data[other._size - 1 - i];
+        if (i < _size) {
+            sum += _data[i];
+        }
+        
+        if (i < other._size) {
+            sum += other._data[i];
+        }
         
         carry = sum / 4;
-        result._data[result._size - 1 - i] = sum % 4;
+        result._data[i] = sum % 4;
     }
     
     result.removeLeadingZeros();
@@ -124,14 +116,17 @@ Four Four::subtract(const Four& other) const {
         throw std::invalid_argument("Нельзя вычесть из большего числа");
     }
     
-    size_t resultSize = std::max(_size, other._size);
-    Four result(resultSize, 0);
-    
+    size_t maxSize = std::max(_size, other._size);
+    Four result(maxSize, 0);
     int borrow = 0;
-    for (size_t i = 0; i < resultSize; ++i) {
-        int digit = (_size > i ? _data[_size - 1 - i] : 0) - borrow;
+    for (size_t i = 0; i < maxSize; ++i) {
+        int digit = -borrow;
+        if (_size > i) {
+            digit += _data[i];
+        }
+
         if (other._size > i) {
-            digit -= other._data[other._size - 1 - i];
+            digit -= other._data[i];
         }
         
         if (digit < 0) {
@@ -141,7 +136,7 @@ Four Four::subtract(const Four& other) const {
             borrow = 0;
         }
         
-        result._data[result._size - 1 - i] = static_cast<unsigned char>(digit);
+        result._data[i] = static_cast<unsigned char>(digit);
     }
     
     if (borrow != 0) {
@@ -154,7 +149,9 @@ Four Four::subtract(const Four& other) const {
 }
 
 bool Four::equals(const Four& other) const {
-    if (_size != other._size) return false;
+    if (_size != other._size){
+        return false;
+    }
     return std::equal(_data, _data + _size, other._data);
 }
 
@@ -162,9 +159,9 @@ bool Four::greaterThan(const Four& other) const {
     if (_size != other._size) {
         return _size > other._size;
     }
-    for (size_t i = 0; i < _size; ++i) {
-        if (_data[i] != other._data[i]) {
-            return _data[i] > other._data[i];
+    for (size_t i = _size; i > 0; --i) {
+        if (_data[i - 1] != other._data[i - 1]) {
+            return _data[i - 1] > other._data[i - 1];
         }
     }
     return false;
@@ -174,19 +171,22 @@ bool Four::lessThan(const Four& other) const {
     if (_size != other._size) {
         return _size < other._size;
     }
-    for (size_t i = 0; i < _size; ++i) {
-        if (_data[i] != other._data[i]) {
-            return _data[i] < other._data[i];
+    for (size_t i = _size; i > 0; --i) {
+        if (_data[i - 1] != other._data[i - 1]) {
+            return _data[i - 1] < other._data[i - 1];
         }
     }
     return false;
 }
 
 std::string Four::toString() const {
+    if (_size == 0) {
+        return "0";
+    }
+    
     std::string result;
-    result.reserve(_size);
-    for (size_t i = 0; i < _size; ++i) {
-        result += digitToChar(_data[i]);
+    for (size_t i = _size; i > 0; --i) {
+        result += digitToChar(_data[i - 1]);
     }
     return result;
 }
@@ -206,7 +206,7 @@ void Four::resize(size_t newSize) {
 
 void Four::removeLeadingZeros() {
     size_t leadingZeros = 0;
-    while (leadingZeros < _size && _data[leadingZeros] == 0) {
+    while (leadingZeros < _size && _data[_size - 1 - leadingZeros] == 0) {
         ++leadingZeros;
     }
     
@@ -216,7 +216,7 @@ void Four::removeLeadingZeros() {
     } else if (leadingZeros > 0) {
         size_t newSize = _size - leadingZeros;
         unsigned char* newData = new unsigned char[newSize];
-        std::copy(_data + leadingZeros, _data + _size, newData);
+        std::copy(_data, _data + _size - leadingZeros, newData);
         delete[] _data;
         _data = newData;
         _size = newSize;

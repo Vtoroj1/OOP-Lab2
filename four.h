@@ -28,11 +28,6 @@ public:
     // Деструктор
     virtual ~Four() noexcept;
     
-    // Методы доступа
-    size_t size() const;
-    const unsigned char* data() const;
-    unsigned char get(size_t index) const;
-    
     // Арифметические операции
     Four add(const Four& other) const;
     Four subtract(const Four& other) const;
