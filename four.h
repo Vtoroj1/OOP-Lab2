@@ -12,8 +12,6 @@ private:
     bool isValidDigit(unsigned char digit) const;
     unsigned char charToDigit(char c) const;
     char digitToChar(unsigned char digit) const;
-    void resize(size_t newSize);
-    void removeLeadingZeros();
     void validateNumber() const;
 
 public:
