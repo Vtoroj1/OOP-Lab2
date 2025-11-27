@@ -24,7 +24,7 @@ public:
     Four(Four&& other) noexcept;
     
     // Деструктор
-    virtual ~Four() noexcept;
+    ~Four() noexcept;
     
     // Арифметические операции
     Four add(const Four& other) const;
